@@ -30,93 +30,83 @@
 #define DO           "PALAVRA RESERVADA: do"
 #define TRUE         "OPERADOR BOOLEANO: true"
 #define FALSE        "OPERADOR BOOLEANO: false"
+#define ABRECHAVE   "ABRE CHAVE"
+#define FECHACHAVE  "FECHA CHAVE"
+#define DOISPONTOIGUAL "DOIS PONTOS E IGUAL"
+#define MAIORIGUAL     "MAIOR OU IGUAL"
+#define MENORIGUAL     "MENOR OU IGUAL"
+#define INTEGER        "PALAVRA RESERVADA: integer"
+#define REAL        "PALAVRA RESERVADA: real"
 #define FIM
 #define ERRO         "ERRO"
 #define END          "0"
+
+#define tokenProgram "program"
+#define tokenIf      "if"
 
 
 
 //Leitura de arquivo
 int numeroValor = 0;
-int numeroLinha = 0;
+int numeroLinha = 1;
 
-char* recuperaTipoDado(char *token){
-    //Mudei de 0 para 1 no true
-    if (strcmp(token, TRUE) == 1 || strcmp(token, FALSE) == 0) {
-        
-        printf("Valor: ");
-        printf("%s", token);
-        printf("\n");
-        return "LOGICO";
-    }
+char* recuperaTipoDado(char *token){    
 
     bool jaTemPonto = false;
     bool temCaractere = false;
 
-    printf("\nLinha[%d] - valor[%d]= {%s} - ", numeroLinha, numeroValor, token);
+    printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
 
-    //Removi a verificação *token != " ", pois *token já chega sem " ".
-    //Substitui *token por token[i] {O sistema comparava o token inteiro em vez de comparar letra por letra}
-    for (int i = 0; token[i] != '\0'; i++)
-    {
-        //Alterei para imprimir todo o valor em vez de partes do valor
-        
-        if (token[i] == PONTO)
+        if (isdigit(token[0]) || (token[0] == '.' && isdigit(token[1])))
         {
-            if (jaTemPonto)
-            {
-                temCaractere = true;
-            }
-            jaTemPonto = true;
-        } else if (isdigit(token[i])) //Só entra se for falso? {Retirei o !} agora entra se for um digito
-        {           
-            temCaractere = true; 
-        }else 
-        {
-            switch(*token){
-                case '+': return MAIS; break;
-                case '-': return MENOS; break;
-                case '=': return IGUAL; break;
-                case '*': return MULT; break;
-                case '/': return DIV; break;
-                case '(': return LPAREN; break;
-                case ')': return RPAREN; break;
-                case ';': return PONTOVIRGULA; break;
-                case ',': return VIRGULA; break;
-                case ':': return DOISPONTOS; break;
-                case '.': return PONTO; break;
-                case '>': return MAIOR; break;
-                case '<': return MENOR; break;
-                case 'program': return PROGRAM; break;
-                case 'begin': return BEGIN; break;
-                case 'var': return VAR; break;
-                case 'if': return IF; break;
-                case 'else': return ELSE; break;
-                case 'then': return THEN; break;
-                case 'while': return WHILE; break;
-                case 'do': return DO; break;
-                
-            }
-            numeroValor ++;
-            return VARIAVEL;
-        }
-    }
-//Só entraria se temCaractere fosse falso? {tirei o !}
-    if (temCaractere) {
-        if (jaTemPonto)
-        {
+        char *temponto = strchr(token, '.');
+        if (temponto != NULL) {
             numeroValor ++;
             return "REAL";
-        }
-        else 
-        {
+        } else {
             numeroValor ++;
             return "INTEIRO";
         }
-    }
+        } else {
 
+            if (strcmp(token, "program") == 0) { numeroValor++; return PROGRAM; }
+            else if (strcmp(token, "begin") == 0) { numeroValor++; return BEGIN; }
+            else if (strcmp(token, "var") == 0) { numeroValor++; return VAR; }
+            else if (strcmp(token, "if") == 0) { numeroValor++; return IF; }
+            else if (strcmp(token, "else") == 0) { numeroValor++; return ELSE; }
+            else if (strcmp(token, "then") == 0) { numeroValor++; return THEN; }
+            else if (strcmp(token, "while") == 0) { numeroValor++; return WHILE; }
+            else if (strcmp(token, "do") == 0) { numeroValor++; return DO; }
+            else if (strcmp(token, "true") == 0) { numeroValor++; return TRUE; }
+            else if (strcmp(token, "false") == 0) { numeroValor++; return FALSE; }
+            else if (strcmp(token, ":=") == 0) { numeroValor++; return DOISPONTOIGUAL;}
+            else if (strcmp(token, ">=") == 0) { numeroValor++; return MAIORIGUAL;}
+            else if (strcmp(token, "<=") == 0) { numeroValor++; return MENORIGUAL;}
+            else if (strcmp(token, "integer") == 0) { numeroValor++; return INTEGER;}
+            else if (strcmp(token, "real") == 0) { numeroValor++; return REAL;}
+            else{
+                switch(*token){
+                case '+':       numeroValor ++; return MAIS; break;
+                case '-':       numeroValor ++; return MENOS; break;
+                case '=':       numeroValor ++; return IGUAL; break;
+                case '*':       numeroValor ++; return MULT; break;
+                case '/':       numeroValor ++; return DIV; break;
+                case '(':       numeroValor ++; return LPAREN; break;
+                case ')':       numeroValor ++; return RPAREN; break;
+                case ';':       numeroValor ++; return PONTOVIRGULA; break;
+                case ',':       numeroValor ++; return VIRGULA; break;
+                case ':':       numeroValor ++; return DOISPONTOS; break;
+                case '.':       numeroValor ++; return PONTO; break;
+                case '>':       numeroValor ++; return MAIOR; break;
+                case '<':       numeroValor ++; return MENOR; break;
+                case '{':       numeroValor ++; return ABRECHAVE; break;
+                case '}':       numeroValor ++; return FECHACHAVE; break;
+                }  
+            }        
+        }
+    
     numeroValor ++;
-    return "LITERAL";
+    return VARIAVEL;
 }
 
 void abrirarquivo(){
@@ -140,9 +130,10 @@ void abrirarquivo(){
         char *resultado = recuperaTipoDado(token);
         printf("Tipo de dado: %s\n", resultado);
         token = strtok(NULL, " ");
-        
-    }
+        }
+
         numeroLinha ++;
+        printf("\n");
         numeroValor = 0;
     }
     
