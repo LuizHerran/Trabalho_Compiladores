@@ -41,15 +41,46 @@
 #define ERRO         "ERRO"
 #define END          "0"
 
-
-
+typedef struct{
+    char *palavraReservada;
+    int   num;
+    float real;
+    char *variavel;
+    char  simbolo;
+    char  *simbolos;
+}leituraDeLinha[4095];
+leituraDeLinha tk;
+int contador = 0;
 
 //Leitura de arquivo
 int numeroValor = 0;
 int numeroLinha = 1;
 
-char* recuperaTipoDado(char *token){    
+//Verifica qual simbolo ele é e armazena em leituraDeLinha
+char* especiais(char valor, leituraDeLinha tk){
+    switch(valor){
+        case '+':       numeroValor ++; tk[contador].simbolo = valor; contador++; return MAIS; break;
+        case '-':       numeroValor ++; tk[contador].simbolo = valor; contador++; return MENOS; break;
+        case '=':       numeroValor ++; tk[contador].simbolo = valor; contador++; return IGUAL; break;
+        case '*':       numeroValor ++; tk[contador].simbolo = valor; contador++; return MULT; break;
+        case '/':       numeroValor ++; tk[contador].simbolo = valor; contador++; return DIV; break;
+        case '(':       numeroValor ++; tk[contador].simbolo = valor; contador++; return LPAREN; break;
+        case ')':       numeroValor ++; tk[contador].simbolo = valor; contador++; return RPAREN; break;
+        case ';':       numeroValor ++; tk[contador].simbolo = valor; contador++; return PONTOVIRGULA; break;
+        case ',':       numeroValor ++; tk[contador].simbolo = valor; contador++; return VIRGULA; break;
+        case ':':       numeroValor ++; tk[contador].simbolo = valor; contador++; return DOISPONTOS; break;
+        case '.':       numeroValor ++; tk[contador].simbolo = valor; contador++; return PONTO; break;
+        case '>':       numeroValor ++; tk[contador].simbolo = valor; contador++;; return MAIOR; break;
+        case '<':       numeroValor ++; tk[contador].simbolo = valor; contador++; return MENOR; break;
+        case '{':       numeroValor ++; tk[contador].simbolo = valor; contador++; return ABRECHAVE; break;
+        case '}':       numeroValor ++; tk[contador].simbolo = valor; contador++; return FECHACHAVE; break;
+        }
+}
 
+//Identifica o caracter ou palavra e armazena em leituraDeLinha
+char* recuperaTipoDado(char *token, leituraDeLinha tk){    
+
+    //Verifica se ele é um simbolo
     if(strlen(token) == 1 && !isdigit(token[0])){
         char simbolos[15] = {'+', '-', '=', '*', '/', '(', ')', ';', ',', ':', '.', '>', '<', '{', '}'};
         char c = *token;
@@ -57,53 +88,50 @@ char* recuperaTipoDado(char *token){
         for(int p = 0; p < strlen(simbolos); p++){
             if(c == simbolos[p]){
                 printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-                switch(*token){
-                case '+':       numeroValor ++; return MAIS; break;
-                case '-':       numeroValor ++; return MENOS; break;
-                case '=':       numeroValor ++; return IGUAL; break;
-                case '*':       numeroValor ++; return MULT; break;
-                case '/':       numeroValor ++; return DIV; break;
-                case '(':       numeroValor ++; return LPAREN; break;
-                case ')':       numeroValor ++; return RPAREN; break;
-                case ';':       numeroValor ++; return PONTOVIRGULA; break;
-                case ',':       numeroValor ++; return VIRGULA; break;
-                case ':':       numeroValor ++; return DOISPONTOS; break;
-                case '.':       numeroValor ++; return PONTO; break;
-                case '>':       numeroValor ++; return MAIOR; break;
-                case '<':       numeroValor ++; return MENOR; break;
-                case '{':       numeroValor ++; return ABRECHAVE; break;
-                case '}':       numeroValor ++; return FECHACHAVE; break;
-                }
+                especiais(c, tk);
             }
         } 
     }
 
+    //Verifica se ele é um número e se é inteiro ou real
     if (isdigit(token[0]) || (token[0] == '.' && isdigit(token[1]))){
     char *temponto = strchr(token, '.');
     if (temponto != NULL) {
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor ++;
+        tk[contador].real = atof(token);
+        contador++;
         return "REAL";
     } else {
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor ++;
+        tk[contador].num = atoi(token);
+        contador++;
         return "INTEIRO";
         }
     }
 
+    //verifica se ele é um simbolo de 2 caracteres
     if (strcmp(token, ":=") == 0) { 
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor++; 
+        tk[contador].simbolos = token;
+        contador++;
         return DOISPONTOIGUAL;}
     else if (strcmp(token, ">=") == 0) { 
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor++; 
+        tk[contador].simbolos = token;
+        contador++;
         return MAIORIGUAL;}
     else if (strcmp(token, "<=") == 0) { 
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor++; 
+        tk[contador].simbolos = token;
+        contador++;
         return MENORIGUAL;}
 
+        //Verifica se tem pontuação junto da palavra e separa
     char *palavra = malloc(strlen(token)+1);
     char pontuacao = '\0';
     int j = 0;
@@ -116,349 +144,199 @@ char* recuperaTipoDado(char *token){
     }
     palavra[j] = '\0';
 
-    //printf("\n\npalavra: %s\npontuacao: %c\n\n", palavra, pontuacao);
-
+   
+    //Verifica as palavras reservadas
     if (strcmp(palavra, "program") == 0) { 
         if(pontuacao == '\0'){
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return PROGRAM;
+            tk[contador].palavraReservada = token;
+            contador++;
+            numeroValor++; 
+            return PROGRAM;
         } else {
             printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, PROGRAM);
             numeroValor++;
+            tk[contador].palavraReservada = palavra;
+            contador++;
             printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
+            especiais(pontuacao, tk);
         }
     } else if (strcmp(palavra, "begin") == 0) {
             if(pontuacao == '\0'){
+            tk[contador].palavraReservada = token;
+            contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return BEGIN;
+            numeroValor++; 
+            return BEGIN;
             } else {
+                tk[contador].palavraReservada = palavra;
+                contador++;
                 printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, BEGIN);
                 numeroValor++;
                 printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
-            }
-            
-        }
-    else if (strcmp(palavra, "var") == 0) { 
+                especiais(pontuacao, tk);
+            } 
+     } else if (strcmp(palavra, "var") == 0) { 
         if(pontuacao == '\0'){
+            tk[contador].palavraReservada = token;
+            contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return VAR;
         } else {
+            tk[contador].palavraReservada = palavra;
+            contador++;
+            
             printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, VAR);
             numeroValor++;
             printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
+            especiais(pontuacao, tk);
         }
-     } else if (strcmp(palavra, "if") == 0) {
+      } else if (strcmp(palavra, "if") == 0) {
         if(pontuacao == '\0'){
+            tk[contador].palavraReservada = token;
+            contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return IF;
         } else {
+            tk[contador].palavraReservada = palavra;
+            contador++;
+            
             printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, IF);
             numeroValor++;
             printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
+            especiais(pontuacao, tk);
         }
-      } else if (strcmp(palavra, "else") == 0) {
-        if(pontuacao == '\0'){
+       } else if (strcmp(palavra, "else") == 0) {
+            if(pontuacao == '\0'){
+            tk[contador].palavraReservada = token;
+            contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return ELSE;
-        } else {
+            } else {
+            tk[contador].palavraReservada = palavra;
+            contador++;
+            
             printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, ELSE);
             numeroValor++;
             printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
+            especiais(pontuacao, tk);
             }
-        }
-       } else if (strcmp(palavra, "then") == 0) { 
-        if(pontuacao == '\0'){
+        } else if (strcmp(palavra, "then") == 0) { 
+            if(pontuacao == '\0'){
+                tk[contador].palavraReservada = token;
+                contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return THEN;
-        } else {
+            } else {
+                tk[contador].palavraReservada = palavra;
+                contador++;
+                
             printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, THEN);
             numeroValor++;
             printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
+            especiais(pontuacao, tk);
             }
-        }
-        } else if (strcmp(palavra, "while") == 0) { 
-        if(pontuacao == '\0'){
-            printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return WHILE;
-        } else {
-            printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, WHILE);
-            numeroValor++;
-            printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
-        }
-         } else if (strcmp(palavra, "do") == 0) { 
-        if(pontuacao == '\0'){
-            printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return DO;
-        } else {
-            printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, DO);
-            numeroValor++;
-            printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
-        }
-          } else if (strcmp(palavra, "true") == 0) { 
-        if(pontuacao == '\0'){
-            printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return TRUE;
-        } else {
-            printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, TRUE);
-            numeroValor++;
-            printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
-        }
-           } else if (strcmp(palavra, "false") == 0) { 
+         } else if (strcmp(palavra, "while") == 0) { 
             if(pontuacao == '\0'){
+                tk[contador].palavraReservada = token;
+                contador++;
                 printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return FALSE;
-        } else {
-            printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, FALSE);
-            numeroValor++;
-            printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
+                numeroValor++; return WHILE;
+            } else {
+                tk[contador].palavraReservada = palavra;
+                contador++;
+                
+                printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, WHILE);
+                numeroValor++;
+                printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
+                especiais(pontuacao, tk);
             }
-        }
-            } else if (strcmp(palavra, "integer") == 0) { 
+          } else if (strcmp(palavra, "do") == 0) { 
                 if(pontuacao == '\0'){
+                    tk[contador].palavraReservada = token;
+                    contador++;
+                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                numeroValor++; return DO;
+                } else {
+                    tk[contador].palavraReservada = palavra;
+                    contador++;
+                       
+                printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, DO);
+                numeroValor++;
+                printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
+                especiais(pontuacao, tk);
+                }
+           } else if (strcmp(palavra, "true") == 0) { 
+                if(pontuacao == '\0'){
+                    tk[contador].palavraReservada = token;
+                    contador++;
+                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                numeroValor++; return TRUE;
+                } else {
+                    tk[contador].palavraReservada = palavra;
+                    contador++;
+                printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, TRUE);
+                numeroValor++;
+                printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
+                especiais(pontuacao, tk);
+                }
+            } else if (strcmp(palavra, "false") == 0) { 
+                if(pontuacao == '\0'){
+                    tk[contador].palavraReservada = token;
+                    contador++;
+                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                numeroValor++; return FALSE;
+                } else {
+                    tk[contador].palavraReservada = palavra;
+                    contador++;
+                printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, FALSE);
+                numeroValor++;
+                printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
+                especiais(pontuacao, tk);
+                }
+             } else if (strcmp(palavra, "integer") == 0) { 
+                if(pontuacao == '\0'){
+                    tk[contador].palavraReservada = token;
+                    contador++;
                 printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
                 numeroValor++; return INTEGER;
-        } else {
-            printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, INTEGER);
-            numeroValor++;
-            printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
-        }
-             } else if (strcmp(palavra, "real") == 0) { 
+                } else {
+                    tk[contador].palavraReservada = palavra;
+                    contador++;
+                    printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, INTEGER);
+                    numeroValor++;
+                    printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
+                    especiais(pontuacao, tk);
+                }
+              } else if (strcmp(palavra, "real") == 0) { 
                 if(pontuacao == '\0'){
+                    tk[contador].palavraReservada = token;
+                    contador++;
                     printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
                     numeroValor++; return REAL;
                     } else {
+                        tk[contador].palavraReservada = palavra;
+                        contador++;
                     printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, REAL);
                     numeroValor++;
                     printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-                    switch(pontuacao){
-                    case '+':       numeroValor ++; return MAIS; break;
-                    case '-':       numeroValor ++; return MENOS; break;
-                    case '=':       numeroValor ++; return IGUAL; break;
-                    case '*':       numeroValor ++; return MULT; break;
-                    case '/':       numeroValor ++; return DIV; break;
-                    case '(':       numeroValor ++; return LPAREN; break;
-                    case ')':       numeroValor ++; return RPAREN; break;
-                    case ';':       numeroValor ++; return PONTOVIRGULA; break;
-                    case ',':       numeroValor ++; return VIRGULA; break;
-                    case ':':       numeroValor ++; return DOISPONTOS; break;
-                    case '.':       numeroValor ++; return PONTO; break;
-                    case '>':       numeroValor ++; return MAIOR; break;
-                    case '<':       numeroValor ++; return MENOR; break;
-                    case '{':       numeroValor ++; return ABRECHAVE; break;
-                    case '}':       numeroValor ++; return FECHACHAVE; break;
-                        }
+                    especiais(pontuacao, tk);
                     }
                 }
     
     if(pontuacao == '\0'){
+        tk[contador].variavel = token;
+        contador++;
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor ++;
         return VARIAVEL;
     } else {
+            tk[contador].variavel = palavra;
+            contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> Tipo de dado: %s\n", numeroLinha, numeroValor, palavra, VARIAVEL);
             numeroValor++;
             printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, pontuacao);
-            switch(pontuacao){
-            case '+':       numeroValor ++; return MAIS; break;
-            case '-':       numeroValor ++; return MENOS; break;
-            case '=':       numeroValor ++; return IGUAL; break;
-            case '*':       numeroValor ++; return MULT; break;
-            case '/':       numeroValor ++; return DIV; break;
-            case '(':       numeroValor ++; return LPAREN; break;
-            case ')':       numeroValor ++; return RPAREN; break;
-            case ';':       numeroValor ++; return PONTOVIRGULA; break;
-            case ',':       numeroValor ++; return VIRGULA; break;
-            case ':':       numeroValor ++; return DOISPONTOS; break;
-            case '.':       numeroValor ++; return PONTO; break;
-            case '>':       numeroValor ++; return MAIOR; break;
-            case '<':       numeroValor ++; return MENOR; break;
-            case '{':       numeroValor ++; return ABRECHAVE; break;
-            case '}':       numeroValor ++; return FECHACHAVE; break;
-            }
+            especiais(pontuacao, tk);
         }
 }
 
@@ -481,7 +359,7 @@ void abrirarquivo(){
 
         token = strtok(linha, " ");
         while (token != NULL) {
-        char *resultado = recuperaTipoDado(token);
+        char *resultado = recuperaTipoDado(token, tk);
         printf("Tipo de dado: %s\n", resultado);
         token = strtok(NULL, " ");
         }
@@ -499,4 +377,27 @@ void abrirarquivo(){
     */
     
     fclose(ptr_file_in);
+}
+
+void lerStruct(leituraDeLinha tk){
+    for(int k = 0; k < 18; k++){
+
+        if(tk[k].palavraReservada != '\0'){
+            printf("Valor[%d] - %s - Palavra reservada!\n", k, tk[k].palavraReservada);
+        }else if(tk[k].num != 0){
+            printf("Valor[%d] - %d - Numero Inteiro!\n", k, tk[k].num);
+        }else if(tk[k].real != 0.0f){
+            printf("Valor[%d] - %.2f - Numero real!\n", k, tk[k].real);
+        }else if(tk[k].simbolo != '\0'){
+            printf("Valor[%d] - %c - Simbolo!\n", k, tk[k].simbolo);
+        }else if(tk[k].simbolos != '\0'){
+            printf("Valor[%d] - %s - Simbolos!\n", k, tk[k].simbolos);
+        }else if(tk[k].variavel != '\0'){
+            printf("Valor[%d] - %s - Variavel!\n", k, tk[k].variavel);
+        }else{
+            printf("\nErro em %d\n", k);
+        }
+
+    }
+    
 }
