@@ -60,7 +60,6 @@ char linha[256];
 
 //Identifica o caracter ou palavra e armazena em leituraDeLinha
 char* recuperaTipoDado(char *token, leituraDeLinha tk){  
-    printf("\nLeitura{recuperarTipoDado} token = %s\n", token);
 
     //Verifica se ele é um simbolo
     if(strlen(token) == 1 && !isdigit(token[0])){
@@ -69,7 +68,6 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk){
         
         for(int p = 0; p < strlen(simbolos); p++){
             if(c == simbolos[p]){
-                printf("Verificacao de simbolo de recuperarDado = %c\n", c);
                 printf("Linha[%d] - valor[%d] = '%c' -> ", numeroLinha, numeroValor, c);
                 switch(c){
                     case '+':       numeroValor ++; tk[contador].simbolo = c; contador++; return MAIS; break;
@@ -93,7 +91,7 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk){
         } 
     }
 
-        //verifica se ele é um simbolo de 2 caracteres
+    //verifica se ele é um simbolo de 2 caracteres
     if (strcmp(token, ":=") == 0) { 
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor++; 
@@ -128,17 +126,14 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk){
 
     //Verifica se ele é um número e se é inteiro ou real
     if (isdigit(token[0]) || (token[0] == '.' && isdigit(token[1]))){
-        printf("Verificaao de numero em recuperarDado = %s entrada\n", token);
-    char *temponto = strchr(token, '.');
+        char *temponto = strchr(token, '.');
     if (temponto != NULL) {
-        printf("Verificaao de numero em recuperarDado = %s saida real\n", token);
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor ++;
         tk[contador].real = atof(token);
         contador++;
         return "REAL";
     } else {
-        printf("Verificaao de numero em recuperarDado = %s saida inteiro\n", token);
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor ++;
         tk[contador].num = atoi(token);
@@ -247,80 +242,72 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk){
 }
 
 void separaSimbolos(char *token) {
-
-    printf("\ntoken = %s\n", token);
     
-    const char simbolos_simples[] = {"+-*/})({}:,;<>="};
+    //declaração de simbolos a serem verificados para separação
+    const char simbolos_simples[] = {"+-*/})({}:,;<.>="};
     char temp[512];
+    char *savepont;
     int j = 0;
 
+    //verifica se tem simbolos e os separa
     for (int i = 0; token[i] != '\0'; i++) {
+        //verifica se é algum simbolo de 2 caracteres
         if (token[i+1] != '\0') {
             if ((token[i] == ':' && token[i+1] == '=') || (token[i] == '<' && token[i+1] == '=') ||
                 (token[i] == '>' && token[i+1] == '=') || (token[i] == '=' && token[i+1] == '=')) {
                 temp[j++] = ' ';
                 temp[j++] = token[i];
                 temp[j++] = token[i+1];
-                printf("\n simbolos = %c%c\n", token[i], token[i+1]);
                 temp[j++] = ' ';
                 i++; 
                 continue;
             }
         }
-
+        
+        //Verifica os simbolos de 1 caracter e os separa
         if (strchr(simbolos_simples, token[i]) != NULL) {
-            temp[j++] = ' ';
-            temp[j++] = token[i];
-            printf("\n simbolo = %c\n", token[i]);
-            temp[j++] = ' ';
+
+            if(token[i] == '.' && isdigit(token[i+1])){
+                temp[j++] = token[i];
+            }else{
+                temp[j++] = ' ';
+                temp[j++] = token[i];
+                temp[j++] = ' ';
+            }
         } else {
             temp[j++] = token[i];
-            printf("\npalavra else = %c\n", token[i]);
         }
     }
     temp[j] = '\0';
+    temp[strcspn(temp, "\n")] = '\0';
+    int i = 2;
+    char *aux;
 
-    int i = 0;
-    printf("\ntemp = ");
-    while(temp[i] != 0){
-        printf("%c", temp[i]);
-        i++;
-    }
-    printf("\n");
-    i = 0;
-    
-    char *aux = strtok(temp, " \t\n\r");
-    printf("primeira leitura de AUX = %s\n", aux);
-    
-    while (temp[i] != '\0') {
+    //Lé a string separada e chama recuperarTipoDado para fazer o tratamento
+    aux = strtok_s(temp, " ", &savepont);
+    while (aux != NULL) {
         //2 não cai no if
-        if (strlen(aux) > 0) {
-            char *resultado = recuperaTipoDado(aux, tk);
-            printf("Tipo de dado: %s\n", resultado);
-        }
-        aux = strtok(NULL, " \t\n\r");
-        printf("\nleitura[%d] de AUX = %s\n", i, aux);
-        i++;
+        char *resultado = recuperaTipoDado(aux, tk);
+        printf("Tipo de dado: %s\n", resultado);
+        aux = strtok_s(NULL, " ", &savepont);
+        i++;       
     }
 }
-
 
 void abrirarquivo(){
     const char nome_arquivo[] = "fonte.pas";
     FILE *ptr_file_in = fopen(nome_arquivo, "r");
+    if (ptr_file_in == NULL){printf("Erro ao abrir o arquivo: %s", nome_arquivo); return;}
 
-    if (ptr_file_in == NULL){
-        printf("Erro ao abrir o arquivo: %s", nome_arquivo);
-        return;
-    }
+        char *token;
 
     while (fgets(linha, sizeof(linha), ptr_file_in)){
-        linha[strcspn(linha, "\r\n")] = '\0';
+        linha[strcspn(linha, "\n")] = '\0';
 
-        char *token = strtok(linha, " ");
+        token = strtok(linha, " ");
         while (token != NULL) {
-            separaSimbolos(token);
-            token = strtok(NULL, " ");
+        separaSimbolos(token);
+        token = strtok(NULL, " ");
         }
 
         numeroLinha++;
