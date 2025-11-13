@@ -267,6 +267,7 @@ void separaSimbolos(char *token) {
         //Verifica os simbolos de 1 caracter e os separa
         if (strchr(simbolos_simples, token[i]) != NULL) {
 
+            //Verifica se depois do . tem um número, se sim ele ignora pois é um número real se não ele separa
             if(token[i] == '.' && isdigit(token[i+1])){
                 temp[j++] = token[i];
             }else{
@@ -317,29 +318,31 @@ void abrirarquivo(){
     fclose(ptr_file_in);
 }
 
-
 void lerStruct(leituraDeLinha tk){
+
+    FILE *f_out = fopen("leitura.lex", "w");
     
     for (int k = 0; k < contador; k++) {
         if (tk[k].palavraReservada != NULL) {
-            printf("Valor[%d] - %s - Palavra reservada!\n", k, tk[k].palavraReservada);
+            fprintf(f_out, "Valor[%d] - %s - Palavra reservada!\n", k, tk[k].palavraReservada);
         } 
         else if (tk[k].variavel != NULL) {
-            printf("Valor[%d] - %s - Variavel!\n", k, tk[k].variavel);
+            fprintf(f_out, "Valor[%d] - %s - Variavel!\n", k, tk[k].variavel);
         } 
         else if (tk[k].simbolos != NULL) {
-            printf("Valor[%d] - %s - Simbolo duplo!\n", k, tk[k].simbolos);
+            fprintf(f_out, "Valor[%d] - %s - Simbolo duplo!\n", k, tk[k].simbolos);
         } 
         else if (tk[k].simbolo != 0) {
-            printf("Valor[%d] - %c - Simbolo simples!\n", k, tk[k].simbolo);
+            fprintf(f_out, "Valor[%d] - %c - Simbolo simples!\n", k, tk[k].simbolo);
         } 
         else if (tk[k].real != 0.0f) {
-            printf("Valor[%d] - %.2f - Numero real!\n", k, tk[k].real);
+            fprintf(f_out, "Valor[%d] - %.2f - Numero real!\n", k, tk[k].real);
         } 
         else {
-            printf("Valor[%d] - %d - Numero inteiro!\n", k, tk[k].num);
+            fprintf(f_out, "Valor[%d] - %d - Numero inteiro!\n", k, tk[k].num);
         }
     }
+    fclose(f_out);
 }
 
 

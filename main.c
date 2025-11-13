@@ -1,4 +1,4 @@
-#include "lexico.h"
+#include "sintaxico.h"
 
 int main(void)
 {
