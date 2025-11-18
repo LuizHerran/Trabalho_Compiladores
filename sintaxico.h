@@ -87,13 +87,13 @@ void numero(leituraDeLinha tk[], int lugar){
         printf("Numero inteiro-[%d] - ", tk[lugarVariavel].num);
         lugarVariavel++;
     } else if(tk[lugarVariavel].real != 0.0f){
-        printf("Numero inteiro-[%d] - ", tk[lugar].num);
+        printf("Numero real-[%d] - ", tk[lugar].num);
         lugarVariavel++;
     } else {
         printf("Erro de Syntax: 'número' esperada no lugar de: \n\n");
             //Mostra oq foi escrito no lugar
             palavraNaoEsperada(tk, lugarVariavel);
-            lugarVariavel++;
+            
     }
 }
 
@@ -127,9 +127,11 @@ void fator(leituraDeLinha tk[], int lugar){
 
     if(tk[lugar].variavel != NULL){
         identificador(tk, lugar);
-    } else if(tk[lugar].num != 0 || tk[lugar].real != 0.0f){
+    } else if(tk[lugar].num != 0){
         numero(tk, lugar);
-    } else {printf("Else de expressao");}
+    } else if(tk[lugar].real != 0.0f){
+        numero(tk, lugar);
+    }
 }
 
 //Termo 
@@ -137,7 +139,7 @@ void termo(leituraDeLinha tk[], int lugar){
 // <fator> { ( * | / ) <fator> };
 
     fator(tk, lugar);
-    
+
     while(tk[lugarVariavel].simbolo != '\0'){
         for(int k = lugarVariavel; k < lugarVariavel+1; k++){
             if(tk[k].simbolo == TOKEN_MULT){
@@ -154,16 +156,16 @@ void termo(leituraDeLinha tk[], int lugar){
                 printf("Simbolo-[%c] -> ", tk[k].simbolo);
             } else if(tk[k].simbolo == TOKEN_MENOS){
                 printf("Simbolo-[%c] -> ", tk[k].simbolo);
-            } else if(tk[k].simbolos == TOKEN_MAIORIGUAL){
-                printf("Simbolos-[%s] -> ", tk[k].simbolos);
-            } else if(tk[k].simbolos == TOKEN_MENORIGUAL){
-                printf("Simbolos-[%s] -> ", tk[k].simbolos);
-            }
+            } else if(tk[k].simbolo == TOKEN_DOISPONTOIGUAL){
+                printf("Simbolo-[%c] -> ", tk[k].simbolo);
+            } else if(tk[k].simbolo == TOKEN_PONTOVIRGULA){
+            } else {palavraNaoEsperada(tk, lugarVariavel);}
         }
         lugarVariavel++;
         fator(tk, lugarVariavel);
     }
 }
+
 
 // Expressão simples 
 void expressaoSimples(leituraDeLinha tk[], int lugar){
@@ -181,7 +183,8 @@ void expressaoSimples(leituraDeLinha tk[], int lugar){
             printf("Simbolo-[%c] - ", tk[lugarVariavel].simbolo);
             lugarVariavel++;
             termo(tk, lugarVariavel);}
-    } 
+    }
+
 }
 
 //Expressão 
@@ -199,11 +202,8 @@ void expressao(leituraDeLinha tk[], int lugar){
 //Comando ------------------------------------------------------- problema aqui!
 void comando(leituraDeLinha tk[], int lugar){
 // <atribuição> | <comando composto> | <comando condicional> | <comando repetitivo>
-printf("\n\n - test - \n");
-printf("variavel atual no teste -> %s\n", tk[lugarVariavel].variavel);
-printf("lugarVariavel atual no teste -> %d\n", lugarVariavel);
-printf("lugar atual no teste -> %d\n", lugar);
 
+    if (tk[lugar].palavraReservada == NULL){tk[lugar].palavraReservada = "oi";}
 
     if(strcmp(tk[lugar].palavraReservada, TOKEN_BEGIN) == 0){
         comandoComposto(tk, lugar);
@@ -211,16 +211,19 @@ printf("lugar atual no teste -> %d\n", lugar);
 
     } else if(strcmp(tk[lugar].palavraReservada, TOKEN_IF) == 0){
         // if <expressão> then <comando> [ else <comando> ] -- <Comando condicional>
-        printf("palavra Reservada-[%s] - ", tk[lugar].palavraReservada);
+        printf("palavra Reservada-[%s] -> ", tk[lugar].palavraReservada);
         lugarVariavel++;
         
         expressao(tk, lugarVariavel);
         
         //Verifica se a proxima palavra é then:
         if(strcmp(tk[lugarVariavel].palavraReservada, TOKEN_THEN) == 0){
-            printf("palavra Reservada-[%s] - ", tk[lugarVariavel].palavraReservada);
+            printf("palavra Reservada-[%s] -> ", tk[lugarVariavel].palavraReservada);
+            printf("\n");
             lugarVariavel++;
+
             comando(tk, lugarVariavel);
+            identificadorDeSimbolos(tk, ';', lugarVariavel);
             
             //Verifica se tem else (não é borigado a ter);
             if(strcmp(tk[lugarVariavel].palavraReservada, TOKEN_ELSE) == 0){
@@ -254,21 +257,23 @@ printf("lugar atual no teste -> %d\n", lugar);
 
     } else if(tk[lugar].variavel != NULL){
         // <variável> := <expressão> ----------> <atribuição>
-        printf("Variavel-[%s] - ", tk[lugar].variavel);
+        printf("Variavel-[%s] -> ", tk[lugar].variavel);
         lugarVariavel++;
 
         //Verifica se a proxima palavra é :=
         if(strcmp(tk[lugarVariavel].simbolos, TOKEN_DOISPONTOIGUAL) == 0){
-            printf("Variavel-[%s] - ", tk[lugarVariavel].simbolos);
+            printf("Variavel-[%s] -> ", tk[lugarVariavel].simbolos);
             lugarVariavel++;
             expressao(tk, lugarVariavel);
+            identificadorDeSimbolos(tk, ';', lugarVariavel);
+
         } else {
             //Se não for :=
                     printf("Erro de Syntax: ':=' esperada no lugar de: \n\n");
                     //Mostra oq foi escrito no lugar
                     palavraNaoEsperada(tk, lugar);
         }
-    } else{
+    } else {
         //Se não for Beguin, if, while ou variavel
         printf("Erro de Syntax: 'atribuicao, comando composto, comando condicional ou comando repetitico' esperada no lugar de: \n\n");
         //Mostra oq foi escrito no lugar
