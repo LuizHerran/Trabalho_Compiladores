@@ -30,8 +30,6 @@
 #define DO           "PALAVRA RESERVADA: do"
 #define TRUE         "OPERADOR BOOLEANO: true"
 #define FALSE        "OPERADOR BOOLEANO: false"
-#define ABRECHAVE   "ABRE CHAVE"
-#define FECHACHAVE  "FECHA CHAVE"
 #define DOISPONTOIGUAL "DOIS PONTOS E IGUAL"
 #define MAIORIGUAL     "MAIOR OU IGUAL"
 #define MENORIGUAL     "MENOR OU IGUAL"
@@ -42,6 +40,7 @@
 #define END          "PALAVRA RESERVADA: end"
 
 typedef struct{
+    int linha;
     char *palavraReservada;
     int   num;
     float real;
@@ -83,8 +82,6 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk[]){
                     case '.':       numeroValor ++; tk[contador].simbolo = c; contador++; return PONTO; break;
                     case '>':       numeroValor ++; tk[contador].simbolo = c; contador++;; return MAIOR; break;
                     case '<':       numeroValor ++; tk[contador].simbolo = c; contador++; return MENOR; break;
-                    case '{':       numeroValor ++; tk[contador].simbolo = c; contador++; return ABRECHAVE; break;
-                    case '}':       numeroValor ++; tk[contador].simbolo = c; contador++; return FECHACHAVE; break;
                     default: return ERRO;    
                 }
             }
@@ -93,36 +90,45 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk[]){
 
     //verifica se ele é um simbolo de 2 caracteres
     if (strcmp(token, ":=") == 0) { 
+
         printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
         numeroValor++; 
         tk[contador].simbolos = strdup(token);
         contador++;
         return DOISPONTOIGUAL;
-    } else if (strcmp(token, ">=") == 0) { 
-        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-        numeroValor++; 
-        tk[contador].simbolos = strdup(token);
-        contador++;
-        return MAIORIGUAL;}
-    else if (strcmp(token, "<=") == 0) { 
-        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-        numeroValor++; 
-        tk[contador].simbolos = strdup(token);
-        contador++;
-        return MENORIGUAL;
-    } else if (strcmp(token, "==") == 0) { 
-        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-        numeroValor++; 
-        tk[contador].simbolos = strdup(token);
-        contador++;
-        return MENORIGUAL;
-    } else if (strcmp(token, "!=") == 0) { 
-        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-        numeroValor++; 
-        tk[contador].simbolos = strdup(token);
-        contador++;
-        return MENORIGUAL;}
 
+    } else if (strcmp(token, ">=") == 0) { 
+
+        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+        numeroValor++; 
+        tk[contador].simbolos = strdup(token);
+        contador++;
+        return MAIORIGUAL;
+    } else if (strcmp(token, "<=") == 0) { 
+
+        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+        numeroValor++; 
+        tk[contador].simbolos = strdup(token);
+        contador++;
+        return MENORIGUAL;
+
+    } else if (strcmp(token, "==") == 0) { 
+
+        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+        numeroValor++; 
+        tk[contador].simbolos = strdup(token);
+        contador++;
+        return MENORIGUAL;
+
+    } else if (strcmp(token, "!=") == 0) { 
+
+        printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+        numeroValor++; 
+        tk[contador].simbolos = strdup(token);
+        contador++;
+        return MENORIGUAL;
+
+    }
 
     //Verifica se ele é um número e se é inteiro ou real
     if (isdigit(token[0]) || (token[0] == '.' && isdigit(token[1]))){
@@ -159,88 +165,90 @@ char* recuperaTipoDado(char *token, leituraDeLinha tk[]){
             numeroValor++; 
             return BEGIN;
             
-     } else if (strcmp(token, "var") == 0) { 
+    } else if (strcmp(token, "var") == 0) { 
         
             tk[contador].palavraReservada = strdup(token);
             contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return VAR;
         
-      } else if (strcmp(token, "if") == 0) {
+    } else if (strcmp(token, "if") == 0) {
         
             tk[contador].palavraReservada = strdup(token);
             contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return IF;
         
-       } else if (strcmp(token, "else") == 0) {
+    } else if (strcmp(token, "else") == 0) {
             
             tk[contador].palavraReservada = strdup(token);
             contador++;
             printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
             numeroValor++; return ELSE;
             
-        } else if (strcmp(token, "then") == 0) { 
+    } else if (strcmp(token, "then") == 0) { 
             
                 tk[contador].palavraReservada = strdup(token);
                 contador++;
-            printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-            numeroValor++; return THEN;
+                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                numeroValor++; return THEN;
             
-         } else if (strcmp(token, "while") == 0) { 
+    } else if (strcmp(token, "while") == 0) { 
             
                 tk[contador].palavraReservada = strdup(token);
                 contador++;
                 printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
                 numeroValor++; return WHILE;
             
-          } else if (strcmp(token, "do") == 0) { 
+    } else if (strcmp(token, "do") == 0) { 
                 
                     tk[contador].palavraReservada = strdup(token);
                     contador++;
-                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-                numeroValor++; return DO;
+                    printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                    numeroValor++; return DO;
                 
-           } else if (strcmp(token, "true") == 0) { 
+    } else if (strcmp(token, "true") == 0) { 
                 
                     tk[contador].palavraReservada = strdup(token);
                     contador++;
                 printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
                 numeroValor++; return TRUE;
                 
-            } else if (strcmp(token, "false") == 0) { 
+    } else if (strcmp(token, "false") == 0) { 
                 
                     tk[contador].palavraReservada = strdup(token);
                     contador++;
-                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-                numeroValor++; return FALSE;
+                    printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                    numeroValor++; return FALSE;
                 
-             } else if (strcmp(token, "integer") == 0) { 
+    } else if (strcmp(token, "integer") == 0) { 
                 
                     tk[contador].palavraReservada = strdup(token);
                     contador++;
-                printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-                numeroValor++; return INTEGER;
+                    printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+                    numeroValor++; return INTEGER;
                 
-              } else if (strcmp(token, "real") == 0) { 
+    } else if (strcmp(token, "real") == 0) { 
                 
                     tk[contador].palavraReservada = strdup(token);
                     contador++;
                     printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
                     numeroValor++; return REAL;
-                } else if (strcmp(token, "end") == 0) { 
+    } else if (strcmp(token, "end") == 0) { 
                     tk[contador].palavraReservada = strdup(token);
                     contador++;
                     printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
                     numeroValor++; return END;
                 }
-                    tk[contador].variavel = strdup(token);
-                    contador++;
-                    printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
-                    numeroValor ++;
-                    return VARIAVEL;       
+    
+    tk[contador].variavel = strdup(token);
+    contador++;
+    printf("Linha[%d] - valor[%d] = '%s' -> ", numeroLinha, numeroValor, token);
+    numeroValor ++;
+    return VARIAVEL;       
 }
 
+//Caso venha 'if(2+' ele separa torna 'if ( 2 +'
 void separaSimbolos(char *token) {
     
     //declaração de simbolos a serem verificados para separação
@@ -295,30 +303,8 @@ void separaSimbolos(char *token) {
     }
 }
 
-void abrirarquivo(){
-    const char nome_arquivo[] = "fonte.pas";
-    FILE *ptr_file_in = fopen(nome_arquivo, "r");
-    if (ptr_file_in == NULL){printf("Erro ao abrir o arquivo: %s", nome_arquivo); return;}
-
-        char *token;
-
-    while (fgets(linha, sizeof(linha), ptr_file_in)){
-        linha[strcspn(linha, "\n")] = '\0';
-
-        token = strtok(linha, " ");
-        while (token != NULL) {
-        separaSimbolos(token);
-        token = strtok(NULL, " ");
-        }
-
-        numeroLinha++;
-        printf("\n");
-        numeroValor = 0;
-    }
-    fclose(ptr_file_in);
-}
-
-void lerStruct(leituraDeLinha tk[]){
+//Cria um arquivo .lex com os tokens identificados
+void novo_arquivo(leituraDeLinha tk[]){
 
     FILE *f_out = fopen("leitura.lex", "w");
     
@@ -345,9 +331,36 @@ void lerStruct(leituraDeLinha tk[]){
     fclose(f_out);
 }
 
+//Abre o arquivo chama recuperarTipoDado imprime na tela e cira um .lex
+void abrirarquivo(char *nome){
+    
+    FILE *ptr_file_in = fopen(nome, "r");
+    if (ptr_file_in == NULL){printf("Erro ao abrir o arquivo: %s", nome); return;}
 
- /*
-    1 - Ler arquivo (.pas) identificando todos os TOKENS
-    2 - Gerar arquivo (.lex) contendo todos os TOKENS identificados
-    3 - Ler arquivo (.lex) construindo a arvore sintatica a cada TOKEN
-    */
+        char *token;
+
+    while (fgets(linha, sizeof(linha), ptr_file_in)){
+        linha[strcspn(linha, "\n")] = '\0';
+        tk[0].linha = numeroLinha;
+
+        token = strtok(linha, " ");
+        while (token != NULL) {
+        separaSimbolos(token);
+
+        if(strchr(token, '\n') != NULL){
+            tk[contador-1].linha = numeroLinha;
+        } else {
+            tk[contador-1].linha = numeroLinha;
+        }
+        
+        token = strtok(NULL, " ");
+        }
+
+        
+        numeroLinha++;
+        printf("\n");
+        numeroValor = 0;
+    }
+    fclose(ptr_file_in);
+    //novo_arquivo(tk);
+}
