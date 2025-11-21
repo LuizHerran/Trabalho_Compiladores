@@ -166,18 +166,17 @@ Problema solucionado ajustando regras do léxico.
 # 🚀 Como Compilar e Executar
 
 ```bash
-gcc *.c -o analisador
-./analisador fonte.pas
+gcc main.c -o analisador
+./analisador
 ```
 
 ---
 
-# 👨‍💻 Autores
+# 👨‍💻 Autor
 
 * Luiz Rocha
-* Victor Nogueira
-* Samuel Dantas
-* Vinícius Coelho
-  Universidade Católica de Brasília — UCB
+
+TRABALHO DA MATERIA LINGUAGENS FORMAIS, AUTÔMATOS E COMPILADORES
+           Universidade Católica de Brasília — UCB
 
 
